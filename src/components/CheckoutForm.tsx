@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 
 export default function CheckoutForm() {
     const { clearCart, total } = useCart();

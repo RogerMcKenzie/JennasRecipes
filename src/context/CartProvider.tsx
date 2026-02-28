@@ -1,22 +1,9 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-export interface CartItem {
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-}
+import type { CartItem } from '../types/cart';
 
-interface CartContextType {
-    items: CartItem[];
-    addToCart: (name: string, price: number, id: number) => void;
-    removeFromCart: (id: number) => void;
-    clearCart: () => void;
-    total: number;
-    itemCount: number;
-}
-
+import { CartContext } from './cart.context';
 const CART_STORAGE_KEY = 'jennas-kitchen-cart';
 
 function loadCartFromStorage(): CartItem[] {
@@ -28,7 +15,6 @@ function loadCartFromStorage(): CartItem[] {
     }
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
@@ -66,8 +52,4 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
 }
 
-export function useCart() {
-    const context = useContext(CartContext);
-    if (!context) throw new Error('useCart must be used within a CartProvider');
-    return context;
-}
+

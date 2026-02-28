@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 
 const navItems = [
     { label: 'Home', path: '/' },

@@ -1,6 +1,6 @@
 import { Card, CardMedia, CardContent, Typography, Button, CardActions, Box } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 import type { Product } from '../data/products';
 
 interface ProductCardProps {

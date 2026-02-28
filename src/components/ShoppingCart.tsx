@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 
 export default function ShoppingCart() {
     const { items, removeFromCart, total } = useCart();
