@@ -1,5 +1,31 @@
+# Dependencies
 node_modules
+
+# Build output
 dist
+
+# Vite cache
+.vite
+
+# Environment variables
 .env
 .env.local
 .env.*.local
+
+# macOS
+.DS_Store
+
+# Editor directories and files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Replit (if not needed)
+.replit
+replit.nix
