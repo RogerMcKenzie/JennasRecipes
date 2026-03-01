@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI, SchemaType, type Schema } from '@google/generative-ai';
-import { geminiApiKey, hasGeminiApiKey } from '../config/env';
+import { geminiApiKey, geminiModel, hasGeminiApiKey } from '../config/env';
 
 export interface AIRecipe {
     title: string;
@@ -50,7 +50,119 @@ const recipeSchema: Schema = {
     required: ['title', 'cookTime', 'servings', 'difficulty', 'ingredients', 'steps', 'tips'],
 };
 
-const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+const DEFAULT_GEMINI_MODELS = [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash',
+];
+
+let discoveredModelsPromise: Promise<string[]> | null = null;
+
+function normalizeModelName(model: string): string {
+    return model.replace(/^models\//, '').trim();
+}
+
+function getConfiguredCandidateModels(): string[] {
+    if (!geminiModel) {
+        return DEFAULT_GEMINI_MODELS;
+    }
+
+    return [geminiModel, ...DEFAULT_GEMINI_MODELS.filter((model) => model !== geminiModel)];
+}
+
+function uniqueModels(models: string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    for (const model of models.map(normalizeModelName)) {
+        if (!model || seen.has(model)) {
+            continue;
+        }
+        seen.add(model);
+        result.push(model);
+    }
+
+    return result;
+}
+
+function sortModels(models: string[]): string[] {
+    const weights = new Map(DEFAULT_GEMINI_MODELS.map((model, index) => [model, index]));
+
+    return [...models].sort((a, b) => {
+        const weightA = weights.get(a) ?? Number.MAX_SAFE_INTEGER;
+        const weightB = weights.get(b) ?? Number.MAX_SAFE_INTEGER;
+
+        if (weightA !== weightB) {
+            return weightA - weightB;
+        }
+
+        return a.localeCompare(b);
+    });
+}
+
+function supportsGenerateContent(methods: unknown): boolean {
+    if (!Array.isArray(methods)) {
+        return false;
+    }
+
+    return methods.some((method) => typeof method === 'string' && method === 'generateContent');
+}
+
+function extractModelsFromResponse(data: unknown): string[] {
+    if (!data || typeof data !== 'object') {
+        return [];
+    }
+
+    const models = (data as { models?: unknown }).models;
+    if (!Array.isArray(models)) {
+        return [];
+    }
+
+    return models
+        .map((model) => {
+            if (!model || typeof model !== 'object') {
+                return null;
+            }
+
+            const candidate = model as { name?: unknown; supportedGenerationMethods?: unknown };
+            if (typeof candidate.name !== 'string') {
+                return null;
+            }
+
+            if (!supportsGenerateContent(candidate.supportedGenerationMethods)) {
+                return null;
+            }
+
+            return normalizeModelName(candidate.name);
+        })
+        .filter((model): model is string => Boolean(model));
+}
+
+async function discoverModels(apiKey: string): Promise<string[]> {
+    if (!discoveredModelsPromise) {
+        discoveredModelsPromise = (async () => {
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`
+                );
+
+                if (!response.ok) {
+                    return [];
+                }
+
+                const data = await response.json();
+                return sortModels(uniqueModels(extractModelsFromResponse(data)));
+            } catch (error) {
+                console.error('Failed to discover Gemini models from API:', error);
+                return [];
+            }
+        })();
+    }
+
+    return discoveredModelsPromise;
+}
 
 function parseRecipe(rawText: string): AIRecipe {
     const cleaned = rawText
@@ -102,7 +214,7 @@ function mapGeminiError(error: unknown): string {
     }
 
     if (lower.includes('model') && lower.includes('not found')) {
-        return 'Gemini model access failed for this key. Check model availability in your account.';
+        return 'No compatible Gemini model is available for this API key. Create a fresh key in Google AI Studio, update VITE_GEMINI_API_KEY in Vercel, and redeploy.';
     }
 
     return message;
@@ -121,23 +233,59 @@ export async function generateRecipe(ingredients: string[]): Promise<AIRecipe | 
 
     let lastError: unknown = null;
 
-    for (const modelName of GEMINI_MODELS) {
-        try {
-            const model = genAI.getGenerativeModel({
-                model: modelName,
-                generationConfig: {
-                    responseMimeType: 'application/json',
-                    responseSchema: recipeSchema,
-                },
-            });
+    const attemptedModels = new Set<string>();
+    let sawModelNotFound = false;
 
-            const result = await model.generateContent(prompt);
-            return parseRecipe(result.response.text());
-        } catch (error) {
-            lastError = error;
-            console.error(`Failed to generate AI recipe with ${modelName}:`, error);
+    const tryModels = async (models: string[]) => {
+        for (const modelName of uniqueModels(models)) {
+            if (attemptedModels.has(modelName)) {
+                continue;
+            }
+            attemptedModels.add(modelName);
+
+            try {
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: {
+                        responseMimeType: 'application/json',
+                        responseSchema: recipeSchema,
+                    },
+                });
+
+                const result = await model.generateContent(prompt);
+                return parseRecipe(result.response.text());
+            } catch (error) {
+                lastError = error;
+                if (error instanceof Error) {
+                    const lower = error.message.toLowerCase();
+                    if (lower.includes('model') && lower.includes('not found')) {
+                        sawModelNotFound = true;
+                    }
+                }
+                console.error(`Failed to generate AI recipe with ${modelName}:`, error);
+            }
+        }
+
+        return null;
+    };
+
+    const configuredResult = await tryModels(getConfiguredCandidateModels());
+    if (configuredResult) {
+        return configuredResult;
+    }
+
+    if (sawModelNotFound) {
+        const discoveredModels = await discoverModels(geminiApiKey);
+        const discoveredResult = await tryModels(discoveredModels);
+        if (discoveredResult) {
+            return discoveredResult;
         }
     }
 
-    throw new Error(mapGeminiError(lastError));
+    if (lastError) {
+        throw new Error(mapGeminiError(lastError));
+    }
+
+    // Should never happen, but keep a safe fallback for unknown states.
+    throw new Error('Unable to generate an AI recipe right now. Please try again.');
 }

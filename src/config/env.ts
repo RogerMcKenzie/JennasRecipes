@@ -40,6 +40,12 @@ export const geminiApiKey = firstDefinedEnv([
     'GOOGLE_GEMINI_API_KEY',
 ]);
 
+export const geminiModel = firstDefinedEnv([
+    'VITE_GEMINI_MODEL',
+    'NEXT_PUBLIC_GEMINI_MODEL',
+    'GEMINI_MODEL',
+]);
+
 export const spoonacularApiKey = firstDefinedEnv([
     'VITE_SPOONACULAR_KEY',
     'VITE_SPOONACULAR_API_KEY',
