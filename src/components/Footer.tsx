@@ -10,12 +10,13 @@ import {
     Snackbar,
     Alert,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
-import LockIcon from '@mui/icons-material/Lock';
-import GavelIcon from '@mui/icons-material/Gavel';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -87,27 +88,30 @@ export default function Footer() {
                         </Box>
                     </Grid>
 
-                    {/* About */}
+                    {/* Explore */}
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Typography variant="h5" gutterBottom sx={{ fontFamily: '"Playfair Display", serif' }}>
-                            About
+                        <Typography variant="h5" component="h2" gutterBottom sx={{ fontFamily: '"Playfair Display", serif' }}>
+                            Explore
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2 }}>
+                        <Box component="nav" aria-label="Footer navigation" sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2 }}>
                             {[
-                                { icon: <InfoIcon fontSize="small" />, label: 'About Us' },
-                                { icon: <LockIcon fontSize="small" />, label: 'Privacy' },
-                                { icon: <GavelIcon fontSize="small" />, label: 'Terms and Conditions' },
+                                { icon: <InfoIcon fontSize="small" />, label: 'About Jenna', to: '/#about' },
+                                { icon: <RestaurantMenuIcon fontSize="small" />, label: 'Recipes & AI Generator', to: '/recipes' },
+                                { icon: <StorefrontIcon fontSize="small" />, label: 'Kitchen Store', to: '/store' },
                             ].map((item) => (
                                 <Box
                                     key={item.label}
+                                    component={Link}
+                                    to={item.to}
                                     sx={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 1.5,
-                                        cursor: 'pointer',
-                                        opacity: 0.8,
+                                        opacity: 0.85,
                                         transition: 'opacity 0.2s',
-                                        '&:hover': { opacity: 1 },
+                                        textDecoration: 'none',
+                                        color: 'inherit',
+                                        '&:hover': { opacity: 1, textDecoration: 'underline' },
                                     }}
                                 >
                                     {item.icon}

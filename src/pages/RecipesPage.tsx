@@ -11,14 +11,17 @@ import {
     Divider,
     Skeleton,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SearchIcon from '@mui/icons-material/Search';
 import FlipCard from '../components/FlipCard';
 import AIRecipeCard from '../components/AIRecipeCard';
 import RecipeCard from '../components/RecipeCard';
+import Seo from '../components/Seo';
 import { favorites } from '../data/favorites';
 import { generateRecipe, hasGeminiApiKey } from '../services/aiService';
 import { hasSpoonacularApiKey, spoonacularApiKey } from '../config/env';
+import { absoluteUrl } from '../config/site';
 import type { AIRecipe } from '../services/aiService';
 
 const hasSpoonacularKey = hasSpoonacularApiKey;
@@ -124,35 +127,93 @@ export default function RecipesPage() {
         await Promise.all([aiPromise, webPromise]);
     };
 
+    const recipesJsonLd = [
+        {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
+                { '@type': 'ListItem', position: 2, name: 'Recipes', item: absoluteUrl('/recipes') },
+            ],
+        },
+        {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: "Jenna's Favorite Recipes",
+            url: absoluteUrl('/recipes'),
+            description:
+                "Family-tested recipes from home cook Jenna Dominguez, plus an AI recipe generator that builds a custom recipe from the ingredients you have.",
+            hasPart: favorites.map((r) => ({
+                '@type': 'Recipe',
+                name: r.title,
+                image: absoluteUrl(r.image),
+                author: { '@type': 'Person', name: 'Jenna Dominguez' },
+                recipeIngredient: r.ingredients,
+            })),
+        },
+        {
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: "Jenna's AI Recipe Generator",
+            applicationCategory: 'LifestyleApplication',
+            operatingSystem: 'Any',
+            description:
+                'Free AI recipe generator that turns the ingredients you list into a full recipe with cook time, servings, difficulty, ingredients, step-by-step instructions, and a chef\u2019s tip.',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        },
+    ];
+
     return (
         <Box>
+            <Seo
+                title="Recipes & AI Recipe Generator"
+                description="Browse Jenna's family-tested recipes or use the free AI recipe generator: list the ingredients you have and get a full recipe \u2014 cook time, servings, ingredients, and step-by-step instructions \u2014 in seconds."
+                path="/recipes"
+                image="/Images/JennaDos.jpg"
+                jsonLd={recipesJsonLd}
+            />
+
             {/* Intro Section */}
-            <Box sx={{ py: { xs: 6, md: 10 }, bgcolor: 'background.default' }}>
+            <Box component="section" sx={{ py: { xs: 6, md: 10 }, bgcolor: 'background.default' }}>
                 <Container maxWidth="lg">
                     <Grid container spacing={6} alignItems="center">
                         <Grid size={{ xs: 12, md: 7 }}>
-                            <Typography variant="h2" sx={{ mb: 3, fontSize: { xs: '2rem', md: '2.8rem' } }}>
-                                Recipes
+                            <Typography variant="h1" sx={{ mb: 2, fontSize: { xs: '2.2rem', md: '3rem' }, fontFamily: '"Playfair Display", serif' }}>
+                                Recipes &amp; AI Recipe Generator
                             </Typography>
                             <Typography
                                 variant="body1"
-                                sx={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'text.secondary' }}
+                                sx={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'text.secondary', mb: 2 }}
                             >
-                                Welcome to Jenna's Recipes AI Recipe Generator, the online tool where you can find
-                                amazing and creative recipes based on the ingredients you have. Powered by AI, this tool
-                                creates unique, personalized recipes just for you. Whether you are looking for appetizers,
-                                salads, soups, main courses, desserts, or drinks, you will find something to satisfy your
-                                cravings here. All you have to do is list your ingredients or a dish name,
-                                and the AI will generate a custom recipe for you.
+                                Two ways to find your next meal. Browse Jenna&apos;s family-tested favorites below, or
+                                type the ingredients in your fridge into the AI recipe generator and get a full recipe
+                                in seconds &mdash; cook time, servings, difficulty, ingredients, and step-by-step
+                                instructions.
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ fontStyle: 'italic' }}
+                            >
+                                Looking for cookware to cook these in? See the{' '}
+                                <Box component={Link} to="/store" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                                    kitchen essentials store
+                                </Box>
+                                .
                             </Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 5 }}>
                             <Box
                                 component="img"
                                 src="/Images/JennaDos.jpg"
-                                alt="Jenna cooking"
+                                alt="Jenna cooking in her home kitchen"
+                                width={1200}
+                                height={1500}
+                                loading="lazy"
+                                decoding="async"
                                 sx={{
                                     width: '100%',
+                                    height: 'auto',
                                     borderRadius: 4,
                                     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                                 }}
@@ -163,18 +224,30 @@ export default function RecipesPage() {
             </Box>
 
             {/* AI Recipe Generator */}
-            <Box sx={{ py: 8, bgcolor: 'white' }}>
+            <Box component="section" aria-labelledby="ai-generator-heading" sx={{ py: 8, bgcolor: 'white' }}>
                 <Container maxWidth="md">
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 2 }}>
                         <AutoAwesomeIcon sx={{ color: 'secondary.main', fontSize: 32 }} />
                         <Typography
-                            variant="h3"
+                            id="ai-generator-heading"
+                            variant="h2"
+                            component="h2"
                             textAlign="center"
                             sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' } }}
                         >
                             AI Recipe Generator
                         </Typography>
                     </Box>
+                    <Typography
+                        variant="body1"
+                        textAlign="center"
+                        color="text.secondary"
+                        sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}
+                    >
+                        Type ingredients separated by commas (e.g. &ldquo;chicken, rice, lime, cilantro&rdquo;) or a
+                        dish name. The AI returns a complete recipe with cook time, servings, ingredients, and
+                        instructions.
+                    </Typography>
 
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
                         <TextField
@@ -257,6 +330,7 @@ export default function RecipesPage() {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
                                 <SearchIcon sx={{ color: 'primary.main' }} />
                                 <Typography
+                                    component="h3"
                                     variant="h5"
                                     sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', md: '1.5rem' } }}
                                 >
@@ -289,14 +363,16 @@ export default function RecipesPage() {
             <Divider />
 
             {/* Jenna's Favorites */}
-            <Box sx={{ py: 8, bgcolor: 'background.default' }}>
+            <Box component="section" aria-labelledby="favorites-heading" sx={{ py: 8, bgcolor: 'background.default' }}>
                 <Container maxWidth="lg">
                     <Typography
-                        variant="h3"
+                        id="favorites-heading"
+                        variant="h2"
+                        component="h2"
                         textAlign="center"
                         sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
                     >
-                        Jenna's Favorite Recipes
+                        Jenna&apos;s Favorite Recipes
                     </Typography>
                     <Typography
                         textAlign="center"

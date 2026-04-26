@@ -1,0 +1,8 @@
+# Allow all crawlers and AI answer engines.
+User-agent: *
+Allow: /
+
+# Block search-result-style URLs to avoid indexing duplicate, parameterized variants.
+Disallow: /*?*
+
+Sitemap: https://www.jennasrecipes.com/sitemap.xml

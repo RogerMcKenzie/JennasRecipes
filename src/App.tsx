@@ -4,6 +4,7 @@ import theme from './theme';
 import { CartProvider } from './context/CartProvider';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollManager from './components/ScrollManager';
 import RecipesPage from './pages/RecipesPage';
 import StorePage from './pages/StorePage';
 import HomePage from './pages/HomePage';
@@ -14,6 +15,7 @@ export default function App() {
       <CssBaseline />
       <CartProvider>
         <BrowserRouter>
+          <ScrollManager />
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Navbar />
             <Box component="main" sx={{ flexGrow: 1 }}>

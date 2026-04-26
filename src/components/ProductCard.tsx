@@ -42,8 +42,10 @@ export default function ProductCard({ product }: ProductCardProps) {
                 component="img"
                 height="200"
                 image={product.image}
-                alt={product.name}
-                sx={{ objectFit: 'cover' }}
+                alt={`${product.name} \u2014 ${product.category}`}
+                loading="lazy"
+                decoding="async"
+                sx={{ objectFit: 'cover', aspectRatio: '4 / 3' }}
             />
             <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h6" fontWeight={600} gutterBottom sx={{ fontSize: '1rem' }}>

@@ -51,6 +51,8 @@ export default function FlipCard({ recipe }: FlipCardProps) {
                         component="img"
                         src={recipe.image}
                         alt={recipe.title}
+                        loading="lazy"
+                        decoding="async"
                         sx={{
                             width: '100%',
                             height: '75%',

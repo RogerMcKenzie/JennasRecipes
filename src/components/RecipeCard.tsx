@@ -54,7 +54,9 @@ export default function RecipeCard({ title, image, id }: RecipeCardProps) {
                 height="180"
                 image={image}
                 alt={title}
-                sx={{ objectFit: 'cover' }}
+                loading="lazy"
+                decoding="async"
+                sx={{ objectFit: 'cover', aspectRatio: '16 / 9' }}
             />
             <CardContent sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography

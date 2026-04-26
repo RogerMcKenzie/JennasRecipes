@@ -9,10 +9,13 @@ import {
     Tab,
     Chip,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ShoppingCart from '../components/ShoppingCart';
 import CheckoutForm from '../components/CheckoutForm';
+import Seo from '../components/Seo';
 import { products } from '../data/products';
+import { absoluteUrl } from '../config/site';
 
 const categories = ['All', 'Cookware', 'Knives & Blenders', 'Bowls & Plates', 'Spices'];
 
@@ -24,35 +27,92 @@ export default function StorePage() {
             ? products
             : products.filter((p) => p.category === categories[activeCategory]);
 
+    const storeJsonLd = [
+        {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
+                { '@type': 'ListItem', position: 2, name: 'Store', item: absoluteUrl('/store') },
+            ],
+        },
+        {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: "Jenna's Recipes Kitchen Store",
+            url: absoluteUrl('/store'),
+            description:
+                'A small, curated store of cookware, knives, blenders, bowls, plates, and spices selected by home cook Jenna Dominguez.',
+            mainEntity: {
+                '@type': 'ItemList',
+                numberOfItems: products.length,
+                itemListElement: products.map((p, i) => ({
+                    '@type': 'ListItem',
+                    position: i + 1,
+                    item: {
+                        '@type': 'Product',
+                        name: p.name,
+                        category: p.category,
+                        image: absoluteUrl(p.image),
+                        url: absoluteUrl('/store'),
+                        offers: {
+                            '@type': 'Offer',
+                            price: p.price.toFixed(2),
+                            priceCurrency: 'USD',
+                            availability: 'https://schema.org/InStock',
+                        },
+                    },
+                })),
+            },
+        },
+    ];
+
     return (
         <Box>
+            <Seo
+                title="Kitchen Store \u2013 Cookware, Knives, Blenders & Spices"
+                description="Shop a small, curated store of kitchen essentials Jenna actually uses: cookware sets, knife sets, blenders, bowls, plates, and core spices."
+                path="/store"
+                image="/Images/Supplies.jpg"
+                jsonLd={storeJsonLd}
+            />
+
             {/* Intro Section */}
-            <Box sx={{ py: { xs: 6, md: 10 }, bgcolor: 'background.default' }}>
+            <Box component="section" sx={{ py: { xs: 6, md: 10 }, bgcolor: 'background.default' }}>
                 <Container maxWidth="lg">
                     <Grid container spacing={6} alignItems="center">
                         <Grid size={{ xs: 12, md: 7 }}>
-                            <Typography variant="h2" sx={{ mb: 3, fontSize: { xs: '2rem', md: '2.8rem' } }}>
-                                Store
+                            <Typography variant="h1" sx={{ mb: 2, fontSize: { xs: '2.2rem', md: '3rem' }, fontFamily: '"Playfair Display", serif' }}>
+                                Kitchen Essentials Store
                             </Typography>
                             <Typography
                                 variant="body1"
-                                sx={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'text.secondary' }}
+                                sx={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'text.secondary', mb: 2 }}
                             >
-                                Welcome to Jenna's Recipes Store, the online shop where you can find high-quality and
-                                affordable products for your kitchen. I have carefully selected and tested the products
-                                that I offer in my store, and I can guarantee that they will make your cooking and baking
-                                experience more enjoyable and successful. Whether you are looking for cookware, bakeware,
-                                utensils, appliances, or spices, you will find something to suit your needs and
-                                preferences here.
+                                A small, curated set of cookware, knives, blenders, bowls, plates, and spices &mdash;
+                                the same kit Jenna uses to cook the recipes on this site. Pick a category below to
+                                narrow it down, or browse all {products.length} items.
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                 Start with{' '}
+                                <Box component={Link} to="/recipes" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                                    Jenna&apos;s favorite recipes
+                                </Box>{' '}
+                                to see what these tools help you cook.
                             </Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 5 }}>
                             <Box
                                 component="img"
                                 src="/Images/Supplies.jpg"
-                                alt="Kitchen supplies"
+                                alt="Cookware, knives, and kitchen tools available in Jenna's Recipes store"
+                                width={1200}
+                                height={900}
+                                loading="lazy"
+                                decoding="async"
                                 sx={{
                                     width: '100%',
+                                    height: 'auto',
                                     borderRadius: 4,
                                     boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                                 }}
@@ -63,10 +123,12 @@ export default function StorePage() {
             </Box>
 
             {/* Products Section */}
-            <Box sx={{ py: 6, bgcolor: 'white' }}>
+            <Box component="section" aria-labelledby="products-heading" sx={{ py: 6, bgcolor: 'white' }}>
                 <Container maxWidth="lg">
                     <Typography
-                        variant="h3"
+                        id="products-heading"
+                        variant="h2"
+                        component="h2"
                         textAlign="center"
                         sx={{ mb: 1, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
                     >

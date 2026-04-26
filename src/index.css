@@ -7,6 +7,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Offset for the sticky AppBar so hash-linked sections aren't hidden under it. */
+  scroll-padding-top: 80px;
 }
 
 body {
